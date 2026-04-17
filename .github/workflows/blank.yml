@@ -22,11 +22,12 @@ jobs:
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          # Senin kodun www klasöründe olduğu için burayı ona göre ayarladık
           npx cap init "MatKitabim" "com.efe.matkitap" --web-dir www
 
-      - name: Android Projesini Olustur
+      - name: Android Projesini Temizle ve Olustur
         run: |
+          # Eğer varsa eski android klasörünü sil ki hata vermesin
+          rm -rf android 
           npx cap add android
           npx cap copy android
 
@@ -39,5 +40,5 @@ jobs:
       - name: APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
         with:
-          name: Matematik-Kitabim-Uygulamasi
+          name: Matematik-Kitabim-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
