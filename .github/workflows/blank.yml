@@ -1,46 +1,47 @@
-name: Android APK Derleyici
+name: Efe Matematik APK Derleyici
 
 on:
   push:
-    branches: [ main, master ] # Kodu yüklediğinde otomatik başlar
+    branches: [ main ] # Eğer ana dal ismin farklıysa (master gibi) burayı düzelt
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: 📥 Kodları Çek
-      uses: actions/checkout@v4
+      - name: Kodları Çek
+        uses: actions/checkout@v4
 
-    - name: 🟢 Node.js Kurulumu
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Node.js Hazırla
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-    - name: ☕ Java (JDK 17) Kurulumu
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
+      - name: Java Kurulumu (Android için)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-    - name: ⚙️ Çevirici Altyapısını Kur (Capacitor)
-      run: |
-        npm init -y
-        npm install @capacitor/core @capacitor/cli @capacitor/android
-        npx cap init EfeMatKitabi com.efetech.matematik --web-dir www
+      - name: Capacitor Altyapısını Kur
+        run: |
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          # www klasörü içindeki index.html dosyasını hedef alıyoruz
+          npx cap init "EfeMatematik" "com.efe.mat" --web-dir www
 
-    - name: 📱 Android Projesini Oluştur
-      run: |
-        npx cap add android
-        npx cap copy android
+      - name: Android Klasörünü Oluştur
+        run: |
+          npx cap add android
+          npx cap copy android
 
-    - name: 🛠️ APK'yı Derle (Gradle)
-      run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleDebug
+      - name: Gradle ile APK Derle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-    - name: 📦 APK'yı İndirilebilir Yap
-      uses: actions/upload-artifact@v4
-      with:
-        name: EfeMatKitabim-APK
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: APK Dosyasını Yayınla
+        uses: actions/upload-artifact@v4
+        with:
+          name: Efe-Matematik-Uygulamasi
+          path: android/app/build/outputs/apk/debug/app-debug.apk
