@@ -1,50 +1,37 @@
-name: Matematik Kitabi APK Motoru
-on:
-  push:
-    branches: [ main ]
+name: Build Android APK
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Source
+        uses: actions/checkout@v3
 
-      - name: Node.js ve Java 21 Kur
-        uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'
-      - uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '21'
+          node-version: 18
 
-      - name: Capacitor Altyapisini Kur
+      - name: Install Dependencies
         run: |
-          npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "MatKitabim" "com.efe.matkitap" --web-dir www
+          npm install -g @capacitor/cli @capacitor/core @capacitor/android
+          npm install
 
-      - name: Android Projesini Hazirla ve Cakisiklik Ayarlarini Yap
+      - name: Build Web Assets
+        run: mkdir -p www && cp src/index.html www/
+
+      - name: Capacitor Sync
         run: |
-          rm -rf android
           npx cap add android
-          npx cap copy android
-          
-          # HATA COZUCU: Kotlin kütüphane çakışmasını engellemek için ayar ekle
-          echo "android.useAndroidX=true" >> android/gradle.properties
-          echo "android.enableJetifier=true" >> android/gradle.properties
-          # Tekrarlanan sınıfları devre dışı bırakmak için gradle ayarlarına ekle
-          echo "configurations.all { exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8' }" >> android/app/build.gradle
-          echo "configurations.all { exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk7' }" >> android/app/build.gradle
+          npx cap sync android
 
-      - name: APK Derle (Gradle)
+      - name: Build Signed APK
         run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          cd android && ./gradlew assembleDebug
 
-      - name: APK Dosyasini Yukle
-        uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
         with:
-          name: Matematik-Kitabim-APK
+          name: LGS-Hoca-Efe.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
