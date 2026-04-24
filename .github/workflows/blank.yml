@@ -1,37 +1,38 @@
-name: Build Android APK
-on: [push]
+name: Efe Elite Dev APK Otomasyonu
+on: [push] # Sen her kod attığında çalışır
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Source
+      - name: Kodu GitHub'dan Çek
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Node.js Kurulumu
         uses: actions/setup-node@v3
         with:
           node-version: 18
 
-      - name: Install Dependencies
+      - name: Otomatik Altyapı Kurulumu (Zero Configuration)
         run: |
-          npm install -g @capacitor/cli @capacitor/core @capacitor/android
+          mkdir -p www
+          cp index.html www/
+          # package.json dosyasını manuel yazmadan burada oluşturuyoruz
+          echo '{"name": "lgs-efe-v1", "version": "1.0.0", "dependencies": {"@capacitor/cli": "^5.0.0", "@capacitor/core": "^5.0.0", "@capacitor/android": "^5.0.0"}}' > package.json
           npm install
+          npx cap init "LGS Kampı" "com.efe.lgs.kampi" --web-dir www
 
-      - name: Build Web Assets
-        run: mkdir -p www && cp src/index.html www/
+      - name: Android Platformunu Ekle
+        run: npx cap add android
 
-      - name: Capacitor Sync
+      - name: APK Derleme İşlemi (Gradle)
         run: |
-          npx cap add android
-          npx cap sync android
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-      - name: Build Signed APK
-        run: |
-          cd android && ./gradlew assembleDebug
-
-      - name: Upload APK
+      - name: APK'yı Yayınla
         uses: actions/upload-artifact@v3
         with:
-          name: LGS-Hoca-Efe.apk
+          name: Efe-LGS-Kampi-Yukle
           path: android/app/build/outputs/apk/debug/app-debug.apk
