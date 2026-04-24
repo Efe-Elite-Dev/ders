@@ -1,38 +1,146 @@
-name: Efe Elite Dev APK Otomasyonu
-on: [push] # Sen her kod attığında çalışır
+name: Efe Elite Dev Tam Otomasyon Build
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Kodu GitHub'dan Çek
+      - name: Depoyu Kontrol Et
         uses: actions/checkout@v3
 
-      - name: Node.js Kurulumu
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Otomatik Altyapı Kurulumu (Zero Configuration)
+      - name: HTML Dosyasını İçeriden Oluştur
         run: |
           mkdir -p www
-          cp index.html www/
-          # package.json dosyasını manuel yazmadan burada oluşturuyoruz
-          echo '{"name": "lgs-efe-v1", "version": "1.0.0", "dependencies": {"@capacitor/cli": "^5.0.0", "@capacitor/core": "^5.0.0", "@capacitor/android": "^5.0.0"}}' > package.json
+          cat << 'EOF' > www/index.html
+          <!DOCTYPE html>
+          <html lang="tr">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+              <title>Efe'nin 100 Sayfalık LGS Kampı</title>
+              <style>
+                  :root { --paper: #fdfbf7; --accent: #2563eb; --grid: #e5e7eb; --margin: #ef4444; }
+                  body { background-color: #1e293b; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; perspective: 2000px; touch-action: manipulation; }
+                  .book { width: 95vw; height: 85vh; max-width: 550px; position: relative; transform-style: preserve-3d; }
+                  .page { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: var(--paper); border-radius: 5px 15px 15px 5px; box-shadow: inset 5px 0 15px rgba(0,0,0,0.1), 5px 5px 15px rgba(0,0,0,0.3); padding: 40px 20px 40px 50px; box-sizing: border-box; background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 25px 25px; transform-origin: left center; transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1); backface-visibility: hidden; cursor: pointer; z-index: 1; display: none; }
+                  .page::before { content: ''; position: absolute; left: 40px; top: 0; bottom: 0; width: 2px; background: var(--margin); }
+                  .page.active { z-index: 10; display: block; }
+                  .page.flipped { transform: rotateY(-180deg); display: block; z-index: 5; }
+                  h1 { color: var(--accent); border-bottom: 3px solid var(--accent); font-size: 1.4em; }
+                  .content-box { background: rgba(255,255,255,0.9); border: 2px dashed #94a3b8; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 0.9em; }
+                  input { padding: 8px; border: 2px solid #cbd5e1; border-radius: 5px; width: 70px; text-align: center; font-weight: bold; }
+                  button { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px 0; }
+                  canvas { width: 100%; max-width: 250px; height: auto; border: 2px solid #334155; margin: 10px auto; background: white; display: block; }
+                  .page-info { position: fixed; bottom: 15px; color: white; background: rgba(0,0,0,0.6); padding: 6px 20px; border-radius: 30px; font-size: 0.8em; }
+                  .formula { background: #fee2e2; color: #b91c1c; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-weight: bold; }
+              </style>
+          </head>
+          <body>
+              <div class="book" id="bookContainer"></div>
+              <div class="page-info" id="pInfo">Sayfa: 1 / 100</div>
+              <script>
+                  const book = document.getElementById('bookContainer');
+                  let currentIdx = 0; const totalPages = 100; let answers = {};
+                  for (let i = 1; i <= totalPages; i++) {
+                      const page = document.createElement('div');
+                      page.className = `page ${i === 1 ? 'active' : ''}`;
+                      page.onclick = function() { nextPage(this); };
+                      if (i === 1) {
+                          page.innerHTML = `<div style="text-align:center; margin-top:100px;">
+                              <h1 style="border:none; font-size:2.5em;">LGS 2026</h1>
+                              <h2 style="color:var(--accent)">100 SAYFALIK EĞİTİM SETİ</h2>
+                              <p><b>Master:</b> Efe-Elite-Dev</p>
+                              <p style="opacity:0.5; margin-top:80px;">Tıkla ve Başla 👉</p>
+                          </div>`;
+                      } else if (i === 2) {
+                          page.innerHTML = `<h1>Örüntü Taktikleri</h1>
+                          <div class="content-box">
+                              <p><b>Soru:</b> 5, 8, 11, ...</p>
+                              <p>Formül: <span class="formula">3n + 2</span></p>
+                              <p><b>342. terim:</b> <span class="formula">1028</span></p>
+                              <hr>
+                              <p><b>Soru:</b> 12, 19, 26, ...</p>
+                              <p>Formül: <span class="formula">7n + 5</span></p>
+                              <p><b>236. terim:</b> <span class="formula">1657</span></p>
+                          </div>`;
+                      } else if (i === 3) {
+                          page.innerHTML = `<h1>Grafik: y = 2x + 4</h1>
+                          <div class="content-box" onclick="event.stopPropagation()">
+                              <p>x=0 -> y=4 | y=0 -> x=-2</p>
+                              <canvas id="cLine" width="250" height="250"></canvas>
+                              <button onclick="drawL()">Grafiği Çiz</button>
+                          </div>`;
+                      } else if (i === 4) {
+                          page.innerHTML = `<h1>Geometri & Pisagor</h1>
+                          <div class="content-box">
+                              <p>Kenar: <span class="formula">2√2</span> -> Alan: <span class="formula">8 br²</span></p>
+                              <hr>
+                              <p>a² + b² = c²</p>
+                              <p>3 - 4 - 5 Üçgeni</p>
+                              <p>6 - 8 - 10 Üçgeni</p>
+                          </div>`;
+                      } else {
+                          page.innerHTML = `<h1>Sayfa ${i}: Soru Bankası</h1>
+                          <div class="content-box" onclick="event.stopPropagation()">
+                              <div id="q_${i}" style="min-height:50px; font-weight:bold; color:var(--accent);">Hazırlanıyor...</div>
+                              <input type="number" id="a_${i}">
+                              <button onclick="checkQ(${i})">Onayla</button>
+                              <p id="m_${i}"></p>
+                          </div>`;
+                      }
+                      book.appendChild(page);
+                  }
+                  function nextPage(elem) {
+                      if (currentIdx < totalPages - 1) {
+                          elem.classList.add('flipped'); elem.classList.remove('active');
+                          currentIdx++; document.querySelectorAll('.page')[currentIdx].classList.add('active');
+                      } else {
+                          document.querySelectorAll('.page').forEach(p => p.classList.remove('flipped', 'active'));
+                          currentIdx = 0; document.querySelectorAll('.page')[0].classList.add('active');
+                      }
+                      document.getElementById('pInfo').innerText = `Sayfa: ${currentIdx + 1} / 100`;
+                  }
+                  function drawL() {
+                      const ctx = document.getElementById('cLine').getContext('2d');
+                      ctx.clearRect(0,0,250,250); ctx.beginPath(); ctx.moveTo(125,0); ctx.lineTo(125,250); ctx.moveTo(0,125); ctx.lineTo(250,125); ctx.stroke();
+                      ctx.strokeStyle="red"; ctx.lineWidth=3; ctx.beginPath();
+                      ctx.moveTo(125-50, 125-(2*-5+4)*10); ctx.lineTo(125+50, 125-(2*5+4)*10); ctx.stroke();
+                  }
+                  function genPool(id) {
+                      const pool = [
+                          {q: "y = 5x + 12 eğimi?", a: 5}, {q: "9-12-? üçgeni?", a: 15},
+                          {q: "√196 kaçtır?", a: 14}, {q: "2,8,14 örüntü 10. terim?", a: 56},
+                          {q: "y=2x+4 y'yi nerede keser?", a: 4}
+                      ];
+                      let s = pool[Math.floor(Math.random()*pool.length)];
+                      document.getElementById(`q_${id}`).innerText = s.q;
+                      answers[id] = s.a;
+                  }
+                  function checkQ(id) {
+                      let u = document.getElementById(`a_${id}`).value;
+                      document.getElementById(`m_${id}`).innerText = (u == answers[id]) ? "✅ Doğru!" : "❌ Yanlış!";
+                  }
+                  window.onload = () => { for(let i=5; i<=100; i++) genPool(i); };
+              </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Proje Altyapısını Hazırla
+        run: |
+          echo '{"name": "lgs-efe", "version": "1.0.0", "dependencies": {"@capacitor/cli": "^5.0.0", "@capacitor/core": "^5.0.0", "@capacitor/android": "^5.0.0"}}' > package.json
           npm install
           npx cap init "LGS Kampı" "com.efe.lgs.kampi" --web-dir www
+          npx cap add android
 
-      - name: Android Platformunu Ekle
-        run: npx cap add android
-
-      - name: APK Derleme İşlemi (Gradle)
+      - name: APK Derle
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: APK'yı Yayınla
+      - name: APK Dosyasını Yayınla
         uses: actions/upload-artifact@v3
         with:
-          name: Efe-LGS-Kampi-Yukle
+          name: Efe-LGS-Kampi-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
