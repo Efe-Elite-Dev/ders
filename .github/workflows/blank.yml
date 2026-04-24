@@ -1,4 +1,4 @@
-name: Efe Elite Dev Tam Otomasyon Build
+name: Efe Elite Dev Tam Otomasyon Build V4
 on: [push]
 
 jobs:
@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Depoyu Kontrol Et
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Sürüm v4'e güncellendi
 
       - name: HTML Dosyasını İçeriden Oluştur
         run: |
@@ -77,12 +77,11 @@ jobs:
                               <hr>
                               <p>a² + b² = c²</p>
                               <p>3 - 4 - 5 Üçgeni</p>
-                              <p>6 - 8 - 10 Üçgeni</p>
                           </div>`;
                       } else {
                           page.innerHTML = `<h1>Sayfa ${i}: Soru Bankası</h1>
                           <div class="content-box" onclick="event.stopPropagation()">
-                              <div id="q_${i}" style="min-height:50px; font-weight:bold; color:var(--accent);">Hazırlanıyor...</div>
+                              <div id="q_${i}" style="min-height:50px; font-weight:bold; color:var(--accent);">Yükleniyor...</div>
                               <input type="number" id="a_${i}">
                               <button onclick="checkQ(${i})">Onayla</button>
                               <p id="m_${i}"></p>
@@ -139,8 +138,8 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
-      - name: APK Dosyasını Yayınla
-        uses: actions/upload-artifact@v3
+      - name: APK Dosyasını Yayınla (v4)
+        uses: actions/upload-artifact@v4 # BURASI V4 OLDU
         with:
           name: Efe-LGS-Kampi-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
