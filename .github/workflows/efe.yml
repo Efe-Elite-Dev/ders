@@ -1,0 +1,195 @@
+name: Elite LGS 3D Defter Build
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 3D Akilli Defter HTML
+        run: |
+          mkdir -p www
+          cat << 'EOF' > www/index.html
+          <!DOCTYPE html>
+          <html lang="tr">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+              <title>LGS 3D Akıllı Defter</title>
+              <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+              <style>
+                  :root { --p: #6366f1; --bg: #020617; --card: #1e293b; --text: #f8fafc; }
+                  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+                  .nav { background: var(--card); padding: 12px; display: flex; gap: 10px; overflow-x: auto; sticky: top; z-index: 1000; border-bottom: 2px solid var(--p); }
+                  .nav-btn { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 12px; cursor: pointer; white-space: nowrap; transition: 0.3s; }
+                  .nav-btn.active { background: var(--p); transform: scale(1.05); }
+                  
+                  .container { padding: 20px; max-width: 800px; margin: auto; }
+                  .page { display: none; animation: slideUp 0.4s ease-out; }
+                  .page.active { display: block; }
+                  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+                  .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid #334155; }
+                  #canvas-container { width: 100%; height: 300px; background: #000; border-radius: 15px; margin: 15px 0; border: 2px solid var(--p); position: relative; }
+                  
+                  .input-row { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+                  input { background: #0f172a; border: 1px solid var(--p); color: white; padding: 10px; border-radius: 8px; width: 100px; text-align: center; }
+                  button.main-btn { background: var(--p); color: white; border: none; width: 100%; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
+                  .result { background: #0f172a; padding: 15px; border-radius: 10px; border-left: 5px solid #10b981; margin-top: 15px; font-family: monospace; }
+                  .formula { color: #818cf8; font-weight: bold; }
+              </style>
+          </head>
+          <body>
+
+          <div class="nav">
+              <button class="nav-btn active" onclick="showPage('home', this)">🏠 Kapak</button>
+              <button class="nav-btn" onclick="showPage('math', this)">🔢 Matematik</button>
+              <button class="nav-btn" onclick="showPage('geo3d', this)">🧊 3D Geometri</button>
+          </div>
+
+          <div class="container">
+              <div id="home" class="page active">
+                  <div class="card" style="text-align:center; padding: 60px 20px;">
+                      <h1 style="font-size: 3em; margin: 0;">LGS PRO</h1>
+                      <div style="font-size: 1.2em; color: var(--p); margin-bottom: 30px;">3D Akıllı Eğitim Paneli</div>
+                      <p>Örüntüler, Üslü Sayılar ve Geometrik Prizmalar</p>
+                      <div class="result" style="border-left: none; text-align: left;">
+                          • PDF Notları Entegre Edildi<br>
+                          • 3D Render Motoru Aktif<br>
+                          • Dinamik Grafik Çizici Hazır
+                      </div>
+                  </div>
+              </div>
+
+              <div id="math" class="page">
+                  <div class="card">
+                      <h2>🔢 Kare & Küp & İşlem</h2>
+                      <div class="input-row">Sayı 1: <input type="number" id="n1"></div>
+                      <div class="input-row">Sayı 2: <input type="number" id="n2"></div>
+                      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                          <button class="main-btn" onclick="math('x')">Çarp</button>
+                          <button class="main-btn" onclick="math('/')" style="background:#64748b">Böl</button>
+                      </div>
+                      <div id="res_math" class="result">İşlem bekliyor...</div>
+                  </div>
+                  <div class="card">
+                      <h2>📈 Örüntü Çözücü</h2>
+                      <p>Örnek Not: <span class="formula">5, 8, 11... (3n+2)</span></p>
+                      <div class="input-row">n (Terim): <input type="number" id="pn" placeholder="Örn: 342"></div>
+                      <button class="main-btn" onclick="solvePattern()">Terimi Hesapla</button>
+                      <div id="res_pattern" class="result">Sonuç: -</div>
+                  </div>
+              </div>
+
+              <div id="geo3d" class="page">
+                  <div class="card">
+                      <h2>🧊 3D Görselleştirici</h2>
+                      <div id="canvas-container"></div>
+                      <div class="input-row">Şekil Seç: 
+                          <select id="shapeType" onchange="update3D()" style="padding:10px; border-radius:8px; background:#0f172a; color:white; border:1px solid var(--p);">
+                              <option value="cube">Küp</option>
+                              <option value="rect">Dikdörtgen Prizma</option>
+                              <option value="cyl">Silindir</option>
+                          </select>
+                      </div>
+                      <div class="input-row">Boyut (a/r): <input type="number" id="ga" value="2" oninput="update3D()"></div>
+                      <div class="input-row">Yükseklik (h): <input type="number" id="gh" value="4" oninput="update3D()"></div>
+                      <div id="res_geo" class="result">Hacim: - | Alan: -</div>
+                  </div>
+              </div>
+          </div>
+
+          <script>
+              // Sayfa Yönetimi
+              function showPage(id, btn) {
+                  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                  document.getElementById(id).classList.add('active');
+                  btn.classList.add('active');
+                  if(id === 'geo3d') init3D();
+              }
+
+              // Matematik İşlemleri
+              function math(op) {
+                  let s1 = parseFloat(document.getElementById('n1').value);
+                  let s2 = parseFloat(document.getElementById('n2').value);
+                  if(isNaN(s1)) return;
+                  let res = op === 'x' ? s1 * s2 : s1 / s2;
+                  let k = s1*s1, ku = s1*s1*s1;
+                  document.getElementById('res_math').innerHTML = `Sonuç: ${res} <br> ${s1} Karesi: ${k} | Küpü: ${ku}`;
+              }
+
+              function solvePattern() {
+                  let n = parseFloat(document.getElementById('pn').value);
+                  document.getElementById('res_pattern').innerText = `3n + 2 Formülüne göre: ${3*n + 2}`;
+              }
+
+              // 3D MOTORU (Three.js)
+              let scene, camera, renderer, mesh;
+              function init3D() {
+                  if(renderer) return;
+                  const container = document.getElementById('canvas-container');
+                  scene = new THREE.Scene();
+                  camera = new THREE.PerspectiveCamera(75, container.offsetWidth / 300, 0.1, 1000);
+                  renderer = new THREE.WebGLRenderer({ antialias: true });
+                  renderer.setSize(container.offsetWidth, 300);
+                  container.appendChild(renderer.domElement);
+                  
+                  const light = new THREE.PointLight(0xffffff, 1, 100);
+                  light.position.set(10, 10, 10);
+                  scene.add(light);
+                  scene.add(new THREE.AmbientLight(0x404040));
+                  
+                  camera.position.z = 5;
+                  update3D();
+                  animate();
+              }
+
+              function update3D() {
+                  if(mesh) scene.remove(mesh);
+                  const type = document.getElementById('shapeType').value;
+                  const a = parseFloat(document.getElementById('ga').value) || 1;
+                  const h = parseFloat(document.getElementById('gh').value) || 1;
+                  
+                  let geo;
+                  if(type === 'cube') geo = new THREE.BoxGeometry(a, a, a);
+                  else if(type === 'rect') geo = new THREE.BoxGeometry(a, h, a/2);
+                  else geo = new THREE.CylinderGeometry(a, a, h, 32);
+                  
+                  const mat = new THREE.MeshPhongMaterial({ color: 0x6366f1, wireframe: false });
+                  mesh = new THREE.Mesh(geo, mat);
+                  scene.add(mesh);
+
+                  // Hesaplamalar (Notlardaki Formüller)
+                  if(type === 'cube') {
+                      document.getElementById('res_geo').innerText = `Alan: ${6*a*a} | Hacim: ${a**3}`;
+                  } else if(type === 'cyl') {
+                      document.getElementById('res_geo').innerText = `Alan (π=3): ${2*3*a*(a+h)} | Hacim: ${3*a*a*h}`;
+                  }
+              }
+
+              function animate() {
+                  requestAnimationFrame(animate);
+                  if(mesh) { mesh.rotation.x += 0.01; mesh.rotation.y += 0.01; }
+                  renderer.render(scene, camera);
+              }
+          </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Build APK
+        run: |
+          echo '{"name": "efe-3d-defter", "version": "3.0.0", "dependencies": {"@capacitor/cli": "^5.0.0", "@capacitor/core": "^5.0.0", "@capacitor/android": "^5.0.0"}}' > package.json
+          npm install
+          npx cap init "3D Akilli Defter" "com.efe.defter3d" --web-dir www
+          npx cap add android
+          cd android && chmod +x gradlew && ./gradlew assembleDebug
+
+      - name: Export APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Efe-LGS-3D-Defter-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
