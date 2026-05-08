@@ -1,14 +1,14 @@
-name: Efe Geometri Pro Build
+name: Efe Akilli Defter Pro Build
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Kodu Cek
         uses: actions/checkout@v4
 
-      - name: HTML Dosyasını Oluştur
+      - name: Akilli Defter HTML Olustur
         run: |
           mkdir -p www
           cat << 'EOF' > www/index.html
@@ -17,102 +17,155 @@ jobs:
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-              <title>Efe Elite Geometri Hesaplayıcı</title>
+              <title>Efe Elite Akıllı Defter</title>
               <style>
-                  :root { --primary: #2563eb; --bg: #1e293b; --card: #ffffff; --text: #334155; }
-                  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; display: flex; flex-direction: column; align-items: center; touch-action: manipulation; }
-                  .container { max-width: 600px; width: 100%; padding-bottom: 50px; }
-                  .calc-card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); border-left: 6px solid var(--primary); }
-                  h1 { color: #f8fafc; text-align: center; font-size: 1.8em; margin-bottom: 30px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
-                  h2 { margin: 0 0 15px 0; font-size: 1.3em; color: var(--primary); display: flex; justify-content: space-between; }
-                  .input-group { margin: 12px 0; display: flex; align-items: center; justify-content: space-between; font-weight: 500; }
-                  input { padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; width: 100px; text-align: center; font-size: 1em; }
-                  button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1em; transition: 0.3s; }
-                  button:active { transform: scale(0.98); background: #1d4ed8; }
-                  .result-box { margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.95em; line-height: 1.6; }
+                  :root { --primary: #3b82f6; --bg: #0f172a; --card: #1e293b; --text: #f1f5f9; --accent: #10b981; }
+                  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; touch-action: manipulation; }
+                  
+                  /* Navigasyon */
+                  .nav { background: var(--card); padding: 15px; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #334155; display: flex; gap: 10px; overflow-x: auto; }
+                  .nav-btn { background: #334155; color: white; border: none; padding: 8px 15px; border-radius: 20px; white-space: nowrap; cursor: pointer; }
+                  .nav-btn.active { background: var(--primary); }
+
+                  /* Defter Sayfası */
+                  .container { padding: 20px; max-width: 600px; margin: auto; }
+                  .page { display: none; animation: fadeIn 0.4s ease; }
+                  .page.active { display: block; }
+                  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+                  .card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid #334155; }
+                  h1 { color: var(--primary); font-size: 1.5em; margin-bottom: 15px; border-left: 4px solid var(--primary); padding-left: 10px; }
+                  
+                  /* Hesaplayıcı Stilleri */
+                  .input-group { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
+                  input { background: #0f172a; border: 1px solid #475569; color: white; padding: 8px; border-radius: 6px; width: 80px; text-align: center; }
+                  .btn-calc { background: var(--primary); color: white; border: none; width: 100%; padding: 12px; border-radius: 10px; font-weight: bold; margin-top: 10px; }
+                  .res-box { background: #0f172a; padding: 12px; border-radius: 8px; margin-top: 10px; border-left: 4px solid var(--accent); font-family: monospace; }
+                  
+                  .formula { color: #f43f5e; background: #4c1d24; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
+                  canvas { background: white; border-radius: 10px; width: 100%; margin-top: 10px; }
               </style>
           </head>
           <body>
+
+              <div class="nav">
+                  <button class="nav-btn active" onclick="openPage('p1', this)">🏠 Ana Sayfa</button>
+                  <button class="nav-btn" onclick="openPage('p2', this)">🔢 Üslü & Örüntü</button>
+                  <button class="nav-btn" onclick="openPage('p3', this)">📉 Denklemler</button>
+                  <button class="nav-btn" onclick="openPage('p4', this)">🧊 Geo Hesapla</button>
+              </div>
+
               <div class="container">
-                  <h1>📐 LGS Geometri Pro</h1>
-                  <div class="calc-card">
-                      <h2>1. Küp 🧊</h2>
-                      <div class="input-group">Kenar (a): <input type="number" id="k_a" placeholder="cm"></div>
-                      <button onclick="calcKup()">Hesapla</button>
-                      <div id="res_kup" class="result-box">Değer giriniz...</div>
+                  <div id="p1" class="page active">
+                      <div class="card" style="text-align: center; padding: 50px 20px;">
+                          <h1 style="border:none; font-size: 2.5em;">LGS 2026</h1>
+                          <h2 style="color: var(--accent)">Elite Akıllı Defter</h2>
+                          <p>Master: <b>Feyzula Efe Tuna</b></p>
+                          <hr style="border: 0; border-top: 1px solid #334155; margin: 30px 0;">
+                          <p>PDF Notları, Hesaplayıcılar ve İnteraktif Grafikler Tek Uygulamada.</p>
+                      </div>
                   </div>
-                  <div class="calc-card">
-                      <h2>2. Dikdörtgen Prizma 📦</h2>
-                      <div class="input-group">a: <input type="number" id="d_a"></div>
-                      <div class="input-group">b: <input type="number" id="d_b"></div>
-                      <div class="input-group">c: <input type="number" id="d_c"></div>
-                      <button onclick="calcDik()">Hesapla</button>
-                      <div id="res_dik" class="result-box">Değerleri giriniz...</div>
+
+                  <div id="p2" class="page">
+                      <div class="card">
+                          <h1>Üslü Sayılar Notları</h1>
+                          <p>Negatif Üs: <span class="formula">a⁻ⁿ = 1 / aⁿ</span></p>
+                          <p>Üssün Üssü: <span class="formula">(aⁿ)ᵐ = aⁿ˙ᵐ</span></p>
+                      </div>
+                      <div class="card">
+                          <h1>Örüntü Taktikleri</h1>
+                          <p>5, 8, 11... -> Artış 3. Formül: <span class="formula">3n + 2</span></p>
+                          <div class="res-box">342. terim: 3(342)+2 = 1028</div>
+                      </div>
                   </div>
-                  <div class="calc-card">
-                      <h2>3. Kare Dik Prizma 📏</h2>
-                      <div class="input-group">Taban (a): <input type="number" id="kp_a"></div>
-                      <div class="input-group">Yükseklik (h): <input type="number" id="kp_h"></div>
-                      <button onclick="calcKareP()">Hesapla</button>
-                      <div id="res_kp" class="result-box">Değerleri giriniz...</div>
+
+                  <div id="p3" class="page">
+                      <div class="card">
+                          <h1>Grafik Çizici: y = ax + b</h1>
+                          <div class="input-group">Eğim (a): <input type="number" id="gr_a" value="2"></div>
+                          <div class="input-group">Sabit (b): <input type="number" id="gr_b" value="4"></div>
+                          <button class="btn-calc" onclick="drawGraph()">Grafiği Güncelle</button>
+                          <canvas id="graphCanvas" width="300" height="200"></canvas>
+                      </div>
                   </div>
-                  <div class="calc-card">
-                      <h2>4. Üçgen Dik Prizma 🔺</h2>
-                      <div class="input-group">a,b,c: <div style="display:flex; gap:2px;"><input type="number" id="u_a" style="width:40px;"><input type="number" id="u_b" style="width:40px;"><input type="number" id="u_c" style="width:40px;"></div></div>
-                      <div class="input-group">hc: <input type="number" id="u_hc"></div>
-                      <div class="input-group">h: <input type="number" id="u_h"></div>
-                      <button onclick="calcUcgen()">Hesapla</button>
-                      <div id="res_ucgen" class="result-box">Değerleri giriniz...</div>
-                  </div>
-                  <div class="calc-card">
-                      <h2>5. Silindir 🔋</h2>
-                      <div class="input-group">r: <input type="number" id="s_r"></div>
-                      <div class="input-group">h: <input type="number" id="s_h"></div>
-                      <button onclick="calcSilindir()">Hesapla</button>
-                      <div id="res_sil" class="result-box">Değerleri giriniz...</div>
+
+                  <div id="p4" class="page">
+                      <div class="card">
+                          <h1>Silindir Hesapla</h1>
+                          <div class="input-group">Yarıçap (r): <input type="number" id="s_r"></div>
+                          <div class="input-group">Yükseklik (h): <input type="number" id="s_h"></div>
+                          <button class="btn-calc" onclick="calcSil()">Hesapla</button>
+                          <div id="res_sil" class="res-box">Sonuçlar burada görünecek...</div>
+                      </div>
+                      <div class="card">
+                          <h1>Dikdörtgenler Prizması</h1>
+                          <div class="input-group">a: <input type="number" id="d_a"></div>
+                          <div class="input-group">b: <input type="number" id="d_b"></div>
+                          <div class="input-group">c: <input type="number" id="d_c"></div>
+                          <button class="btn-calc" onclick="calcDik()">Hesapla</button>
+                          <div id="res_dik" class="res-box">Sonuçlar burada görünecek...</div>
+                      </div>
                   </div>
               </div>
+
               <script>
-                  function calcKup() {
-                      let a = parseFloat(document.getElementById('k_a').value);
-                      if(!a) return;
-                      document.getElementById('res_kup').innerHTML = `Çevre: ${12*a} | Alan: ${6*a*a} | Hacim: ${a**3}`;
+                  function openPage(pageId, btn) {
+                      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                      document.getElementById(pageId).classList.add('active');
+                      btn.classList.add('active');
                   }
+
+                  function drawGraph() {
+                      const canvas = document.getElementById('graphCanvas');
+                      const ctx = canvas.getContext('2d');
+                      const a = parseFloat(document.getElementById('gr_a').value);
+                      const b = parseFloat(document.getElementById('gr_b').value);
+                      
+                      ctx.clearRect(0,0,300,200);
+                      ctx.strokeStyle = "#475569";
+                      ctx.beginPath(); ctx.moveTo(150,0); ctx.lineTo(150,200); ctx.moveTo(0,100); ctx.lineTo(300,100); ctx.stroke();
+                      
+                      ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 3;
+                      ctx.beginPath();
+                      for(let x = -50; x <= 50; x++) {
+                          let y = a * x + b;
+                          ctx.lineTo(150 + x*10, 100 - y*10);
+                      }
+                      ctx.stroke();
+                  }
+
+                  function calcSil() {
+                      let r = parseFloat(document.getElementById('s_r').value);
+                      let h = parseFloat(document.getElementById('s_h').value);
+                      if(!r || !h) return;
+                      let alan = 2*3*r*(r+h);
+                      let hacim = 3*r*r*h;
+                      document.getElementById('res_sil').innerHTML = `Alan: ${alan} cm² | Hacim: ${hacim} cm³`;
+                  }
+
                   function calcDik() {
                       let a = parseFloat(document.getElementById('d_a').value), b = parseFloat(document.getElementById('d_b').value), c = parseFloat(document.getElementById('d_c').value);
                       if(!a || !b || !c) return;
-                      document.getElementById('res_dik').innerHTML = `Çevre: ${4*(a+b+c)} | Alan: ${2*(a*b+b*c+a*c)} | Hacim: ${a*b*c}`;
+                      document.getElementById('res_dik').innerHTML = `Alan: ${2*(a*b+b*c+a*c)} | Hacim: ${a*b*c}`;
                   }
-                  function calcKareP() {
-                      let a = parseFloat(document.getElementById('kp_a').value), h = parseFloat(document.getElementById('kp_h').value);
-                      if(!a || !h) return;
-                      document.getElementById('res_kp').innerHTML = `Çevre: ${8*a+4*h} | Alan: ${2*a*a+4*a*h} | Hacim: ${a*a*h}`;
-                  }
-                  function calcUcgen() {
-                      let a = parseFloat(document.getElementById('u_a').value), b = parseFloat(document.getElementById('u_b').value), c = parseFloat(document.getElementById('u_c').value), hc = parseFloat(document.getElementById('u_hc').value), h = parseFloat(document.getElementById('u_h').value);
-                      if(!a || !b || !c || !hc || !h) return;
-                      document.getElementById('res_ucgen').innerHTML = `Alan: ${(c*hc)+(h*(a+b+c))} | Hacim: ${((c*hc)/2)*h}`;
-                  }
-                  function calcSilindir() {
-                      let r = parseFloat(document.getElementById('s_r').value), h = parseFloat(document.getElementById('s_h').value);
-                      if(!r || !h) return;
-                      document.getElementById('res_sil').innerHTML = `Alan: ${2*3*r*r+2*3*r*h} | Hacim: ${3*r*r*h}`;
-                  }
+                  
+                  window.onload = drawGraph;
               </script>
           </body>
           </html>
           EOF
 
-      - name: Setup & Build
+      - name: APK Build Sureci
         run: |
-          echo '{"name": "geo-efe", "version": "1.0.0", "dependencies": {"@capacitor/cli": "^5.0.0", "@capacitor/core": "^5.0.0", "@capacitor/android": "^5.0.0"}}' > package.json
+          echo '{"name": "efe-akilli-defter", "version": "2.0.0", "dependencies": {"@capacitor/cli": "^5.0.0", "@capacitor/core": "^5.0.0", "@capacitor/android": "^5.0.0"}}' > package.json
           npm install
-          npx cap init "Geometri Pro" "com.efe.geo" --web-dir www
+          npx cap init "Akilli Defter" "com.efe.defter" --web-dir www
           npx cap add android
           cd android && chmod +x gradlew && ./gradlew assembleDebug
 
-      - name: Upload APK
+      - name: APK Teslim Et
         uses: actions/upload-artifact@v4
         with:
-          name: Efe-Geometri-Pro-APK
+          name: Efe-LGS-Akilli-Defter-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
