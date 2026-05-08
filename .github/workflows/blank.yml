@@ -1,14 +1,14 @@
-name: Efe Elite Dev Tam Otomasyon Build V4
+name: Efe Geometri Pro Build
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Depoyu Kontrol Et
-        uses: actions/checkout@v4 # Sürüm v4'e güncellendi
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: HTML Dosyasını İçeriden Oluştur
+      - name: HTML Dosyasını Oluştur
         run: |
           mkdir -p www
           cat << 'EOF' > www/index.html
@@ -17,129 +17,102 @@ jobs:
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-              <title>Efe'nin 100 Sayfalık LGS Kampı</title>
+              <title>Efe Elite Geometri Hesaplayıcı</title>
               <style>
-                  :root { --paper: #fdfbf7; --accent: #2563eb; --grid: #e5e7eb; --margin: #ef4444; }
-                  body { background-color: #1e293b; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: 'Segoe UI', sans-serif; overflow: hidden; perspective: 2000px; touch-action: manipulation; }
-                  .book { width: 95vw; height: 85vh; max-width: 550px; position: relative; transform-style: preserve-3d; }
-                  .page { width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: var(--paper); border-radius: 5px 15px 15px 5px; box-shadow: inset 5px 0 15px rgba(0,0,0,0.1), 5px 5px 15px rgba(0,0,0,0.3); padding: 40px 20px 40px 50px; box-sizing: border-box; background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px); background-size: 25px 25px; transform-origin: left center; transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1); backface-visibility: hidden; cursor: pointer; z-index: 1; display: none; }
-                  .page::before { content: ''; position: absolute; left: 40px; top: 0; bottom: 0; width: 2px; background: var(--margin); }
-                  .page.active { z-index: 10; display: block; }
-                  .page.flipped { transform: rotateY(-180deg); display: block; z-index: 5; }
-                  h1 { color: var(--accent); border-bottom: 3px solid var(--accent); font-size: 1.4em; }
-                  .content-box { background: rgba(255,255,255,0.9); border: 2px dashed #94a3b8; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 0.9em; }
-                  input { padding: 8px; border: 2px solid #cbd5e1; border-radius: 5px; width: 70px; text-align: center; font-weight: bold; }
-                  button { background: var(--accent); color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px 0; }
-                  canvas { width: 100%; max-width: 250px; height: auto; border: 2px solid #334155; margin: 10px auto; background: white; display: block; }
-                  .page-info { position: fixed; bottom: 15px; color: white; background: rgba(0,0,0,0.6); padding: 6px 20px; border-radius: 30px; font-size: 0.8em; }
-                  .formula { background: #fee2e2; color: #b91c1c; padding: 2px 4px; border-radius: 4px; font-family: monospace; font-weight: bold; }
+                  :root { --primary: #2563eb; --bg: #1e293b; --card: #ffffff; --text: #334155; }
+                  body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; display: flex; flex-direction: column; align-items: center; touch-action: manipulation; }
+                  .container { max-width: 600px; width: 100%; padding-bottom: 50px; }
+                  .calc-card { background: var(--card); border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); border-left: 6px solid var(--primary); }
+                  h1 { color: #f8fafc; text-align: center; font-size: 1.8em; margin-bottom: 30px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+                  h2 { margin: 0 0 15px 0; font-size: 1.3em; color: var(--primary); display: flex; justify-content: space-between; }
+                  .input-group { margin: 12px 0; display: flex; align-items: center; justify-content: space-between; font-weight: 500; }
+                  input { padding: 10px; border: 2px solid #e2e8f0; border-radius: 8px; width: 100px; text-align: center; font-size: 1em; }
+                  button { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1em; transition: 0.3s; }
+                  button:active { transform: scale(0.98); background: #1d4ed8; }
+                  .result-box { margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.95em; line-height: 1.6; }
               </style>
           </head>
           <body>
-              <div class="book" id="bookContainer"></div>
-              <div class="page-info" id="pInfo">Sayfa: 1 / 100</div>
+              <div class="container">
+                  <h1>📐 LGS Geometri Pro</h1>
+                  <div class="calc-card">
+                      <h2>1. Küp 🧊</h2>
+                      <div class="input-group">Kenar (a): <input type="number" id="k_a" placeholder="cm"></div>
+                      <button onclick="calcKup()">Hesapla</button>
+                      <div id="res_kup" class="result-box">Değer giriniz...</div>
+                  </div>
+                  <div class="calc-card">
+                      <h2>2. Dikdörtgen Prizma 📦</h2>
+                      <div class="input-group">a: <input type="number" id="d_a"></div>
+                      <div class="input-group">b: <input type="number" id="d_b"></div>
+                      <div class="input-group">c: <input type="number" id="d_c"></div>
+                      <button onclick="calcDik()">Hesapla</button>
+                      <div id="res_dik" class="result-box">Değerleri giriniz...</div>
+                  </div>
+                  <div class="calc-card">
+                      <h2>3. Kare Dik Prizma 📏</h2>
+                      <div class="input-group">Taban (a): <input type="number" id="kp_a"></div>
+                      <div class="input-group">Yükseklik (h): <input type="number" id="kp_h"></div>
+                      <button onclick="calcKareP()">Hesapla</button>
+                      <div id="res_kp" class="result-box">Değerleri giriniz...</div>
+                  </div>
+                  <div class="calc-card">
+                      <h2>4. Üçgen Dik Prizma 🔺</h2>
+                      <div class="input-group">a,b,c: <div style="display:flex; gap:2px;"><input type="number" id="u_a" style="width:40px;"><input type="number" id="u_b" style="width:40px;"><input type="number" id="u_c" style="width:40px;"></div></div>
+                      <div class="input-group">hc: <input type="number" id="u_hc"></div>
+                      <div class="input-group">h: <input type="number" id="u_h"></div>
+                      <button onclick="calcUcgen()">Hesapla</button>
+                      <div id="res_ucgen" class="result-box">Değerleri giriniz...</div>
+                  </div>
+                  <div class="calc-card">
+                      <h2>5. Silindir 🔋</h2>
+                      <div class="input-group">r: <input type="number" id="s_r"></div>
+                      <div class="input-group">h: <input type="number" id="s_h"></div>
+                      <button onclick="calcSilindir()">Hesapla</button>
+                      <div id="res_sil" class="result-box">Değerleri giriniz...</div>
+                  </div>
+              </div>
               <script>
-                  const book = document.getElementById('bookContainer');
-                  let currentIdx = 0; const totalPages = 100; let answers = {};
-                  for (let i = 1; i <= totalPages; i++) {
-                      const page = document.createElement('div');
-                      page.className = `page ${i === 1 ? 'active' : ''}`;
-                      page.onclick = function() { nextPage(this); };
-                      if (i === 1) {
-                          page.innerHTML = `<div style="text-align:center; margin-top:100px;">
-                              <h1 style="border:none; font-size:2.5em;">LGS 2026</h1>
-                              <h2 style="color:var(--accent)">100 SAYFALIK EĞİTİM SETİ</h2>
-                              <p><b>Master:</b> Efe-Elite-Dev</p>
-                              <p style="opacity:0.5; margin-top:80px;">Tıkla ve Başla 👉</p>
-                          </div>`;
-                      } else if (i === 2) {
-                          page.innerHTML = `<h1>Örüntü Taktikleri</h1>
-                          <div class="content-box">
-                              <p><b>Soru:</b> 5, 8, 11, ...</p>
-                              <p>Formül: <span class="formula">3n + 2</span></p>
-                              <p><b>342. terim:</b> <span class="formula">1028</span></p>
-                              <hr>
-                              <p><b>Soru:</b> 12, 19, 26, ...</p>
-                              <p>Formül: <span class="formula">7n + 5</span></p>
-                              <p><b>236. terim:</b> <span class="formula">1657</span></p>
-                          </div>`;
-                      } else if (i === 3) {
-                          page.innerHTML = `<h1>Grafik: y = 2x + 4</h1>
-                          <div class="content-box" onclick="event.stopPropagation()">
-                              <p>x=0 -> y=4 | y=0 -> x=-2</p>
-                              <canvas id="cLine" width="250" height="250"></canvas>
-                              <button onclick="drawL()">Grafiği Çiz</button>
-                          </div>`;
-                      } else if (i === 4) {
-                          page.innerHTML = `<h1>Geometri & Pisagor</h1>
-                          <div class="content-box">
-                              <p>Kenar: <span class="formula">2√2</span> -> Alan: <span class="formula">8 br²</span></p>
-                              <hr>
-                              <p>a² + b² = c²</p>
-                              <p>3 - 4 - 5 Üçgeni</p>
-                          </div>`;
-                      } else {
-                          page.innerHTML = `<h1>Sayfa ${i}: Soru Bankası</h1>
-                          <div class="content-box" onclick="event.stopPropagation()">
-                              <div id="q_${i}" style="min-height:50px; font-weight:bold; color:var(--accent);">Yükleniyor...</div>
-                              <input type="number" id="a_${i}">
-                              <button onclick="checkQ(${i})">Onayla</button>
-                              <p id="m_${i}"></p>
-                          </div>`;
-                      }
-                      book.appendChild(page);
+                  function calcKup() {
+                      let a = parseFloat(document.getElementById('k_a').value);
+                      if(!a) return;
+                      document.getElementById('res_kup').innerHTML = `Çevre: ${12*a} | Alan: ${6*a*a} | Hacim: ${a**3}`;
                   }
-                  function nextPage(elem) {
-                      if (currentIdx < totalPages - 1) {
-                          elem.classList.add('flipped'); elem.classList.remove('active');
-                          currentIdx++; document.querySelectorAll('.page')[currentIdx].classList.add('active');
-                      } else {
-                          document.querySelectorAll('.page').forEach(p => p.classList.remove('flipped', 'active'));
-                          currentIdx = 0; document.querySelectorAll('.page')[0].classList.add('active');
-                      }
-                      document.getElementById('pInfo').innerText = `Sayfa: ${currentIdx + 1} / 100`;
+                  function calcDik() {
+                      let a = parseFloat(document.getElementById('d_a').value), b = parseFloat(document.getElementById('d_b').value), c = parseFloat(document.getElementById('d_c').value);
+                      if(!a || !b || !c) return;
+                      document.getElementById('res_dik').innerHTML = `Çevre: ${4*(a+b+c)} | Alan: ${2*(a*b+b*c+a*c)} | Hacim: ${a*b*c}`;
                   }
-                  function drawL() {
-                      const ctx = document.getElementById('cLine').getContext('2d');
-                      ctx.clearRect(0,0,250,250); ctx.beginPath(); ctx.moveTo(125,0); ctx.lineTo(125,250); ctx.moveTo(0,125); ctx.lineTo(250,125); ctx.stroke();
-                      ctx.strokeStyle="red"; ctx.lineWidth=3; ctx.beginPath();
-                      ctx.moveTo(125-50, 125-(2*-5+4)*10); ctx.lineTo(125+50, 125-(2*5+4)*10); ctx.stroke();
+                  function calcKareP() {
+                      let a = parseFloat(document.getElementById('kp_a').value), h = parseFloat(document.getElementById('kp_h').value);
+                      if(!a || !h) return;
+                      document.getElementById('res_kp').innerHTML = `Çevre: ${8*a+4*h} | Alan: ${2*a*a+4*a*h} | Hacim: ${a*a*h}`;
                   }
-                  function genPool(id) {
-                      const pool = [
-                          {q: "y = 5x + 12 eğimi?", a: 5}, {q: "9-12-? üçgeni?", a: 15},
-                          {q: "√196 kaçtır?", a: 14}, {q: "2,8,14 örüntü 10. terim?", a: 56},
-                          {q: "y=2x+4 y'yi nerede keser?", a: 4}
-                      ];
-                      let s = pool[Math.floor(Math.random()*pool.length)];
-                      document.getElementById(`q_${id}`).innerText = s.q;
-                      answers[id] = s.a;
+                  function calcUcgen() {
+                      let a = parseFloat(document.getElementById('u_a').value), b = parseFloat(document.getElementById('u_b').value), c = parseFloat(document.getElementById('u_c').value), hc = parseFloat(document.getElementById('u_hc').value), h = parseFloat(document.getElementById('u_h').value);
+                      if(!a || !b || !c || !hc || !h) return;
+                      document.getElementById('res_ucgen').innerHTML = `Alan: ${(c*hc)+(h*(a+b+c))} | Hacim: ${((c*hc)/2)*h}`;
                   }
-                  function checkQ(id) {
-                      let u = document.getElementById(`a_${id}`).value;
-                      document.getElementById(`m_${id}`).innerText = (u == answers[id]) ? "✅ Doğru!" : "❌ Yanlış!";
+                  function calcSilindir() {
+                      let r = parseFloat(document.getElementById('s_r').value), h = parseFloat(document.getElementById('s_h').value);
+                      if(!r || !h) return;
+                      document.getElementById('res_sil').innerHTML = `Alan: ${2*3*r*r+2*3*r*h} | Hacim: ${3*r*r*h}`;
                   }
-                  window.onload = () => { for(let i=5; i<=100; i++) genPool(i); };
               </script>
           </body>
           </html>
           EOF
 
-      - name: Proje Altyapısını Hazırla
+      - name: Setup & Build
         run: |
-          echo '{"name": "lgs-efe", "version": "1.0.0", "dependencies": {"@capacitor/cli": "^5.0.0", "@capacitor/core": "^5.0.0", "@capacitor/android": "^5.0.0"}}' > package.json
+          echo '{"name": "geo-efe", "version": "1.0.0", "dependencies": {"@capacitor/cli": "^5.0.0", "@capacitor/core": "^5.0.0", "@capacitor/android": "^5.0.0"}}' > package.json
           npm install
-          npx cap init "LGS Kampı" "com.efe.lgs.kampi" --web-dir www
+          npx cap init "Geometri Pro" "com.efe.geo" --web-dir www
           npx cap add android
+          cd android && chmod +x gradlew && ./gradlew assembleDebug
 
-      - name: APK Derle
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: APK Dosyasını Yayınla (v4)
-        uses: actions/upload-artifact@v4 # BURASI V4 OLDU
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: Efe-LGS-Kampi-APK
+          name: Efe-Geometri-Pro-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
